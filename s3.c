@@ -3,11 +3,17 @@
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
-    strcpy(shell_prompt, "[s3]$ ");
+    char current[MAX_PROMPT_LEN - 6];
+     if (getcwd(current, sizeof(current)) == NULL) {
+        perror("getcwd failed");
+        return;
+    }
+    snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s s3]$ ", current);
+
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[])
+void read_command_line(char line[], char lwd[])
 {
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
@@ -92,7 +98,56 @@ int command_with_redirection(char line[]) {
 
 void launch_program_with_redirection(char *args[], int *argsc) {
 
-
-
 }
+
+void init_lwd(char lwd[]) {
+    if (getcwd(lwd, MAX_PROMPT_LEN-6) == NULL){
+        perror("getcwd failed");
+        exit(1);
+    };
+}
+
+int is_cd(char line[]) {
+    char copy[MAX_LINE];
+    strcpy(copy, line);
+
+    char *token = strtok(copy, " ");
+    return (token != NULL && strcmp(token, "cd") == 0);
+    
+}
+
+void run_cd(char *args[], int argsc, char lwd[]) {
+
+    
+    if (argsc > 2) {
+        fprintf(stderr, "cd: too many arguments\n");
+        return;
+    }
+    char *destination;
+    if (argsc == 1) {  //cd to home
+        destination = getenv("HOME");
+        if (destination == NULL) {
+            fprintf(stderr, "cd: HOME not set\n");
+            return;
+        }
+    } else if (strcmp(args[1], "-") == 0){ //cd to -
+        destination = lwd;
+    } else { //cd to specific location
+        destination = args[1];
+    }
+    char current[MAX_PROMPT_LEN - 6];
+    if (getcwd(current, sizeof(current)) == NULL) {
+        perror("getcwd failed");
+        return;
+    }
+
+    if (chdir(destination) == -1) {
+        perror("cd failed");
+        return;
+    } else {
+        strcpy (lwd, current);
+        return;
+    }
+}
+
 
