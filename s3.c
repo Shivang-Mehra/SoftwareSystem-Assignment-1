@@ -82,5 +82,17 @@ void launch_program(char *args[], int argsc)
     ///Handle the 'exit' command;
     ///so that the shell, not the child process,
     ///exits.
-    
 }
+
+int command_with_redirection(char line[]) {
+
+    return(strchr(line, '>') || strchr(line, '<'));
+
+}
+
+void launch_program_with_redirection(char *args[], int *argsc) {
+
+
+
+}
+
