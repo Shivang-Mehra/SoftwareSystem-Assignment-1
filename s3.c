@@ -3,11 +3,17 @@
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
-    strcpy(shell_prompt, "[s3]$ ");
+    char current[MAX_PROMPT_LEN - 6];
+     if (getcwd(current, sizeof(current)) == NULL) {
+        perror("getcwd failed");
+        return;
+    }
+    snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s s3]$ ", current);
+
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[])
+void read_command_line(char line[], char lwd[])
 {
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
@@ -52,13 +58,14 @@ void child(char *args[], int argsc)
     ///For reference, see the code in lecture 3.
     execvp(args[ARG_PROGNAME], args);
 
-    fprintf(stderr, "execvp failed");
+    perror("execvp failed");
     exit(1);
 }
 
 void launch_program(char *args[], int argsc)
 {
     
+    if (argsc == 0) return;
     if (strcmp(args[ARG_PROGNAME], "exit") == 0)
     {
         exit(0);
@@ -86,15 +93,13 @@ void launch_program(char *args[], int argsc)
 
 int command_with_redirection(char line[]) {
 
-    return(strchr(line, '>') || strchr(line, '<'));
+    return(strchr(line, '>') != NULL || strchr(line, '<') != NULL);
 
 }
 
 void launch_program_with_redirection(char *args[], int *argsc) {
-    
+
+
+
 }
-
-void child_with_input_redirected()
-
-void child_with_output_redirected()
 
