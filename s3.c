@@ -70,7 +70,7 @@ void launch_program(char *args[], int argsc)
         exit(1);
     }
     else if (lp == 0) {
-        child(args, argsc)
+        child(args, argsc);
     }
 
     ///Implement this function:
