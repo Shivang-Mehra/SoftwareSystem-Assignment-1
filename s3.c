@@ -91,8 +91,10 @@ int command_with_redirection(char line[]) {
 }
 
 void launch_program_with_redirection(char *args[], int *argsc) {
-
-
-
+    
 }
+
+void child_with_input_redirected()
+
+void child_with_output_redirected()
 
