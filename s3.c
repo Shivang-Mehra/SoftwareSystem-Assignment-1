@@ -58,13 +58,14 @@ void child(char *args[], int argsc)
     ///For reference, see the code in lecture 3.
     execvp(args[ARG_PROGNAME], args);
 
-    fprintf(stderr, "execvp failed");
+    perror("execvp failed");
     exit(1);
 }
 
 void launch_program(char *args[], int argsc)
 {
     
+    if (argsc == 0) return;
     if (strcmp(args[ARG_PROGNAME], "exit") == 0)
     {
         exit(0);
@@ -92,11 +93,11 @@ void launch_program(char *args[], int argsc)
 
 int command_with_redirection(char line[]) {
 
-    return(strchr(line, '>') || strchr(line, '<'));
+    return(strchr(line, '>') != NULL || strchr(line, '<') != NULL);
 
 }
 
-void launch_program_with_redirection(char *args[], int *argsc) {
+void launch_program_with_redirection(char *args[], int argsc) {
 
 }
 
@@ -118,7 +119,7 @@ int is_cd(char line[]) {
 
 void run_cd(char *args[], int argsc, char lwd[]) {
 
-    
+    if (argsc == 0) return;
     if (argsc > 2) {
         fprintf(stderr, "cd: too many arguments\n");
         return;
@@ -150,4 +151,75 @@ void run_cd(char *args[], int argsc, char lwd[]) {
     }
 }
 
+int command_with_pipe(char line[]){
 
+    return(strchr(line, '|') != NULL);
+}
+
+void launch_program_with_pipes(char line[]) {
+    
+    char *individual[MAX_ARGS];
+    int count = 0;
+    char *token = strtok(line, "|");
+    while (token != NULL && count < MAX_ARGS - 1) //spilt pipe command
+    {
+        individual[count] = token;
+        count++;
+        token = strtok(NULL, "|");
+    }
+    individual[count] = NULL;
+
+
+    char *all_args[MAX_ARGS][MAX_ARGS];   
+    int all_argsc[MAX_ARGS];              
+    
+    for (int i = 0; i < count; i++)
+    {
+        parse_command(individual[i], all_args[i], &all_argsc[i]);
+    }
+
+    int pipes[MAX_ARGS - 1][2];
+    for (int i = 0; i < count - 1; i++) 
+    {
+        pipe(pipes[i]);
+    }
+
+    for (int i = 0; i < count; i++) 
+    {
+        int lp = fork();
+        if (lp < 0) {
+            fprintf(stderr, "fork failed\n");
+            exit(1);
+        }
+        else if (lp == 0) {
+            if (i == 0){
+                dup2(pipes[i][1], STDOUT_FILENO);
+                
+            }
+            else if (i < (count - 1)) {
+                dup2(pipes[i-1][0], STDIN_FILENO);
+                dup2(pipes[i][1], STDOUT_FILENO);
+            }
+            else {
+                dup2(pipes[i-1][0], STDIN_FILENO);
+            }
+            for (int j = 0; j < count - 1; j++) 
+            {
+                close(pipes[j][0]);
+                close(pipes[j][1]);
+            }
+            child(all_args[i], all_argsc[i]);
+            
+        }
+    }
+    for (int i = 0; i < count - 1; i++)
+    {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+    }
+
+for (int i = 0; i < count; i++)
+{
+    wait(NULL);
+}
+}

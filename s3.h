@@ -39,11 +39,12 @@ void read_command_line(char line[], char lwd[]);
 void construct_shell_prompt(char shell_prompt[]);
 void parse_command(char line[], char *args[], int *argsc);
 int command_with_redirection(char line[]);
-void launch_program_with_redirection(char *args[], int *argsc);
+void launch_program_with_redirection(char *args[], int argsc);
 int is_cd(char line[]);
-void run_cd(char *args[],int *argsc, char lwd[]);
+void run_cd(char *args[],int argsc, char lwd[]);
 void init_lwd(char lwd[]);
-
+void launch_program_with_pipes(char line[]);
+int command_with_pipe(char line[]);
 ///Child functions (add more as appropriate)
 void child(char *args[], int argsc);
 

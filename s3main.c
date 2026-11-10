@@ -25,26 +25,26 @@ int main(int argc, char *argv[]){
             run_cd(args, argsc, lwd); ///Implement this function
         }
 
-        if(command_with_pipe(line)){
-            parse_command(line, args, &argsc);
-            launch_program_with_pipes(args, argsc);
+        else if(command_with_pipe(line)){
+            launch_program_with_pipes(line);
         }
         
-        if(command_with_redirection(line)){///Command with redirection
-           parse_command(line, args, &argsc);
-           launch_program_with_redirection(args, argsc);
-           reap();
+        else if(command_with_redirection(line)){///Command with redirection
+            parse_command(line, args, &argsc);
+            launch_program_with_redirection(args, argsc);
+            reap();
         }
-            else ///Basic command
+        else ///Basic command
         {
 
-        parse_command(line, args, &argsc);
+            parse_command(line, args, &argsc);
 
-        launch_program(args, argsc); 
+            launch_program(args, argsc); 
 
-        reap();
+            reap();
+        }
     }
-
     return 0;
     
+
 }
