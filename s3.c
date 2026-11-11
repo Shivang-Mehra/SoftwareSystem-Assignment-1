@@ -101,6 +101,10 @@ void launch_program_with_redirection(char *args[], int argsc) {
 
 }
 
+void child_with_input_redirected()
+
+void child_with_output_redirected()
+
 void init_lwd(char lwd[]) {
     if (getcwd(lwd, MAX_PROMPT_LEN-6) == NULL){
         perror("getcwd failed");
