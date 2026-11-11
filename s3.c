@@ -223,11 +223,3 @@ for (int i = 0; i < count; i++)
     wait(NULL);
 }
 }
-void launch_program_with_redirection(char *args[], int *argsc) {
-    
-}
-
-void child_with_input_redirected()
-
-void child_with_output_redirected()
-
