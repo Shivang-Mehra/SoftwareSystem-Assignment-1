@@ -3,7 +3,7 @@
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
-    char current[MAX_PROMPT_LEN - 6];
+    char current[MAX_PROMPT_LEN - 8];
      if (getcwd(current, sizeof(current)) == NULL) {
         perror("getcwd failed");
         return;

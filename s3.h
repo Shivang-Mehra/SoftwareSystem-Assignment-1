@@ -47,6 +47,8 @@ void launch_program_with_pipes(char line[]);
 int command_with_pipe(char line[]);
 ///Child functions (add more as appropriate)
 void child(char *args[], int argsc);
+void child_with_input_redirected(char *args[], int argsc, char *filename);
+void child_with_output_redirected(char *args[], int argsc, char *filename, int append);
 
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
