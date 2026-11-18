@@ -78,6 +78,8 @@ void launch_program(char *args[], int argsc)
     }
     else if (lp == 0) {
         child(args, argsc);
+    }else {
+        wait(NULL);   // parent reaps the child
     }
 
     ///Implement this function:
@@ -98,12 +100,77 @@ int command_with_redirection(char line[]) {
 }
 
 void launch_program_with_redirection(char *args[], int argsc) {
+    int op_index = -1;     
+    int op_type = 0;
+    char *name = NULL; 
 
+    for(int i=0; i<argsc; i++){
+        if (strcmp(args[i], ">") == 0){
+            name = args[i+1];
+            args[i] = NULL;
+            op_index = i;
+            op_type = 1;
+            break;
+        }        //output + overwrite
+        else if (strcmp(args[i], ">>") == 0){
+            name = args[i+1];
+            args[i] = NULL;
+            op_index = i;
+            op_type = 2;
+            break;
+        }  // output, append
+        else if (strcmp(args[i], "<") == 0){
+            name = args[i+1];
+            args[i] = NULL;
+            op_index = i;
+            op_type = 3;
+            break;
+        }
+    }
+
+        if (op_index == -1 || name == NULL) {
+                fprintf(stderr, "syntax error, bad redirection\n");
+                return;
+        }
+
+        int pid = fork();
+        if (pid < 0) { 
+            printf("Child creation not work");
+        }
+        else if (pid == 0) { /* choose helper */
+            if((op_type == 1) || (op_type == 2)){
+                child_with_output_redirected(args, argsc, name, op_type == 2);
+            }
+            else if(op_type ==3){
+                child_with_input_redirected(args, argsc, name);
+            }
+            else{
+                printf("idk but we messed up somewhere");
+            }
+        }
+        
+        else { wait(NULL);         
+        
+    }
 }
 
-void child_with_input_redirected()
+void child_with_input_redirected(char *args[], int argsc, char *filename){
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) { perror("open failed"); exit(1); }
+    if (dup2(fd, STDIN_FILENO) < 0) { perror("dup2 failed"); exit(1); }
+    close(fd);
+    child(args, argsc);
+}
 
-void child_with_output_redirected()
+void child_with_output_redirected(char *args[], int argsc, char *filename, int append)
+{
+    int flags = O_WRONLY | O_CREAT | (append ? O_APPEND : O_TRUNC);
+    int fd = open(filename, flags, 0644);
+    if (fd < 0) { perror("open failed"); exit(1); }
+    if (dup2(fd, STDOUT_FILENO) < 0) { perror("dup2 failed"); exit(1); }
+    close(fd);
+    child(args, argsc);
+}
 
 void init_lwd(char lwd[]) {
     if (getcwd(lwd, MAX_PROMPT_LEN-6) == NULL){
