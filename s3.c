@@ -157,7 +157,10 @@ void launch_program_with_redirection(char *args[], int argsc) {
 void child_with_input_redirected(char *args[], int argsc, char *filename){
     int fd = open(filename, O_RDONLY);
     if (fd < 0) { perror("open failed"); exit(1); }
-    if (dup2(fd, STDIN_FILENO) < 0) { perror("dup2 failed"); exit(1); }
+    if (dup2(fd, STDIN_FILENO) < 0) { 
+        perror("dup2 failed"); exit(1); 
+    }
+
     close(fd);
     child(args, argsc);
 }
@@ -167,7 +170,10 @@ void child_with_output_redirected(char *args[], int argsc, char *filename, int a
     int flags = O_WRONLY | O_CREAT | (append ? O_APPEND : O_TRUNC);
     int fd = open(filename, flags, 0644);
     if (fd < 0) { perror("open failed"); exit(1); }
-    if (dup2(fd, STDOUT_FILENO) < 0) { perror("dup2 failed"); exit(1); }
+    if (dup2(fd, STDOUT_FILENO) < 0) { 
+        perror("dup2 failed"); exit(1); 
+    }
+
     close(fd);
     child(args, argsc);
 }
@@ -230,6 +236,10 @@ int command_with_pipe(char line[]){
 void launch_program_with_pipes(char line[]) {
     
     char *individual[MAX_ARGS];
+    char *name = NULL;
+    int op_index = -1;     
+    int op_type = 0;
+
     int count = 0;
     char *token = strtok(line, "|");
     while (token != NULL && count < MAX_ARGS - 1) //spilt pipe command
@@ -279,6 +289,59 @@ void launch_program_with_pipes(char line[]) {
                 close(pipes[j][0]);
                 close(pipes[j][1]);
             }
+
+            for(int k=0; k<all_argsc[i]; k++){
+                if (strcmp(all_args[i][k], ">") == 0){
+                    name = all_args[i][k+1];
+                    all_args[i][k] = NULL;
+                    op_index = i;
+                    op_type = 1;
+                    break;
+                }        //output + overwrite
+                else if (strcmp(all_args[i][k], ">>") == 0){
+                    name = all_args[i][k+1];
+                    all_args[i][k] = NULL;
+                    op_index = i;
+                    op_type = 2;
+                    break;
+                }  // output, append
+                else if (strcmp(all_args[i][k], "<") == 0){
+                    name = all_args[i][k+1];
+                    all_args[i][k] = NULL;
+                    op_index = i;
+                    op_type = 3;
+                    break;
+                }
+            }
+            
+            if (op_type != 0 && name == NULL) {
+                fprintf(stderr, "syntax error, bad redirection\n");
+                exit(1);
+            }else if (op_type != 0) {
+                int flags;
+                int target;
+
+                if (op_type == 1) {
+                    flags = O_WRONLY | O_CREAT | O_TRUNC;
+                    target = STDOUT_FILENO;
+                } else if (op_type == 2) {
+                    flags = O_WRONLY | O_CREAT | O_APPEND;
+                    target = STDOUT_FILENO;
+                } else {
+                    flags = O_RDONLY;
+                    target = STDIN_FILENO;
+                }
+
+                int fd = open(name, flags, 0644);
+                if (fd < 0) { perror("open failed"); exit(1); }
+                if (dup2(fd, target) < 0) { perror("dup2 failed"); exit(1); }
+                close(fd);
+            }
+
+            
+        
+
+
             child(all_args[i], all_argsc[i]);
             
         }
