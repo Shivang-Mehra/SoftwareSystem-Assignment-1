@@ -386,15 +386,15 @@ void run_unit(char unit[], char lwd[]){
     int argsc;
 
     if(is_cd(unit)){
-        parse_command(unit, args, argsc);
+        parse_command(unit, args, &argsc);
         run_cd(args, argsc, lwd);
     }else if(command_with_pipe(unit)){
         launch_program_with_pipes(unit);
     }else if(command_with_redirection(unit)){
-        parse_command(unit, args, argsc);
+        parse_command(unit, args, &argsc);
         launch_program_with_redirection(args, argsc);
     }else{
-        parse_command(unit, args, argsc);
+        parse_command(unit, args, &argsc);
         launch_program(args, argsc);
     }
     

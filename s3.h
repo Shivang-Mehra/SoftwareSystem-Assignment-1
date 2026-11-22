@@ -51,6 +51,7 @@ void child_with_input_redirected(char *args[], int argsc, char *filename);
 void child_with_output_redirected(char *args[], int argsc, char *filename, int append);
 
 //for the batch stuff (task 5)
+int command_with_batch(char line[]);
 void run_batch_commands(char line[], char lwd[]);
 void run_unit(char unit[], char lwd[]);
 

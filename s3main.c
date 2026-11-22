@@ -19,29 +19,12 @@ int main(int argc, char *argv[]){
 
     while (1) {
         read_command_line(line, lwd);
-         
-        if(is_cd(line)){///Implement this function
-            parse_command(line, args, &argsc);
-            run_cd(args, argsc, lwd); ///Implement this function
+
+        if(command_with_batch(line)){
+            run_batch_commands(line, lwd);
         }
-
-        else if(command_with_pipe(line)){
-            launch_program_with_pipes(line);
-        }
-        
-        else if(command_with_redirection(line)){///Command with redirection
-            parse_command(line, args, &argsc);
-            launch_program_with_redirection(args, argsc);
-            reap();
-        }
-        else ///Basic command
-        {
-
-            parse_command(line, args, &argsc);
-
-            launch_program(args, argsc); 
-
-            reap();
+        else if(is_cd(line)){///Implement this function
+            run_unit(line, lwd);
         }
     }
     return 0;
