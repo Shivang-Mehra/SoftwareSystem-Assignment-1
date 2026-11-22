@@ -10,12 +10,18 @@ int main(int argc, char *argv[]){
 
     init_lwd(lwd);///Implement this function: initializes lwd with the cwd (using getcwd)
 
-    ///Stores pointers to command arguments.
-    ///The first element of the array is the command name.
-    char *args[MAX_ARGS];
+    if(argc > 1){
+        strncpy(line, argv[1], MAX_LINE-1);
+        line[MAX_LINE - 1] = '\0';
 
-    ///Stores the number of arguments
-    int argsc;
+        if(command_with_batch(line)){
+            launch_batch_commands(line, lwd);
+        }else{
+            run_unit(line, lwd);
+        }
+        return 0;
+    }
+
 
     while (1) {
         read_command_line(line, lwd);
@@ -29,5 +35,4 @@ int main(int argc, char *argv[]){
     }
     return 0;
     
-
 }

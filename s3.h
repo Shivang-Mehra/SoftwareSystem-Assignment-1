@@ -60,6 +60,12 @@ int has_delim_at_depth0(char line[], char delim);
 int split_at_depth0(char line[], char delim, char *pieces[]);
 void run_unit(char unit[], char lwd[]);
 
+int is_subshell(char unit[]);
+void launch_subshell(char unit[]);
+char *subshell_inner(char unit[]);
+void child_subshell(char inner[]);
+
+
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
 #endif

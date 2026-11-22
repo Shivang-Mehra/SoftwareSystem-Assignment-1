@@ -100,7 +100,6 @@ int command_with_redirection(char line[]) {
 }
 
 void launch_program_with_redirection(char *args[], int argsc) {
-    int op_index = -1;     
     int op_type = 0;
     char *name = NULL; 
 
@@ -390,6 +389,8 @@ void run_unit(char unit[], char lwd[]){
     }else if(command_with_redirection(unit)){
         parse_command(unit, args, &argsc);
         launch_program_with_redirection(args, argsc);
+    }else if(is_subshell(unit)){
+        launch_subshell(unit);
     }else{
         parse_command(unit, args, &argsc);
         launch_program(args, argsc);
@@ -416,7 +417,7 @@ int split_at_depth0(char line[], char delim, char *pieces[]){
     }
     return count;
 }
-
+ 
 int is_subshell(char unit[]){
     int index=0;
     int len = strlen(unit);
@@ -429,16 +430,16 @@ int is_subshell(char unit[]){
         return 0;
     }
 
-    int depth =1; //already 1 as the bracket is open
+    int depth = 1; //already 1 as the bracket is open
 
-    for(int i=index; i<len; i++){
+    for(int i=index+1; i<len; i++){
         if(unit[i] == '('){
             depth ++;
         }else if(unit[i] == ')'){
             depth --;
         }
         if(depth ==0){
-            for(int j=i; j<len; j++){
+            for(int j=i+1; j<len; j++){
                 if(unit[j] != ' '){
                     return 0;
                 }
@@ -448,4 +449,42 @@ int is_subshell(char unit[]){
     }
 
     return 0;
+}
+
+void child_subshell(char inner[]) {
+    char shell_path[MAX_LINE];
+    ssize_t n = readlink("/proc/self/exe", shell_path, sizeof(shell_path) - 1);
+    if (n < 0) { perror("readlink failed"); exit(1); }
+    shell_path[n] = '\0';
+
+    char *argv[] = { shell_path, inner, NULL };
+    execv(shell_path, argv);
+    perror("execv failed");
+    exit(1);
+}
+
+char *subshell_inner(char unit[]) {
+    char *start = strchr(unit, '(');          // the opening bracket
+    int end = strlen(unit) - 1;
+    while (end > 0 && unit[end] == ' ') {
+        end--;                                // skip trailing spaces
+    }
+    unit[end] = '\0';                         // overwrite the closing bracket
+    return start + 1;
+}
+
+void launch_subshell(char unit[]) {
+    char *inner = subshell_inner(unit);
+
+    int pid = fork();
+    if (pid < 0) {
+        fprintf(stderr, "fork failed\n");
+        return;
+    }
+    else if (pid == 0) {
+        child_subshell(inner);
+    }
+    else {
+        wait(NULL);
+    }
 }
