@@ -241,11 +241,18 @@ void launch_program_with_pipes(char line[]) {
     int count = split_at_depth0(line, '|', individual);
 
     char *all_args[MAX_ARGS][MAX_ARGS];   
-    int all_argsc[MAX_ARGS];              
+    int all_argsc[MAX_ARGS];  
+    char *inner_text[MAX_ARGS];            
     
     for (int i = 0; i < count; i++)
     {
-        parse_command(individual[i], all_args[i], &all_argsc[i]);
+        if(is_subshell(individual[i])){
+            inner_text[i] = subshell_inner(individual[i]);
+            all_argsc[i] = 0;
+        }else{
+            inner_text[i] = NULL;
+            parse_command(individual[i], all_args[i], &all_argsc[i]);
+        }
     }
 
     int pipes[MAX_ARGS - 1][2];
@@ -273,10 +280,14 @@ void launch_program_with_pipes(char line[]) {
             else {
                 dup2(pipes[i-1][0], STDIN_FILENO);
             }
-            for (int j = 0; j < count - 1; j++) 
-            {
+
+            for (int j = 0; j < count - 1; j++){
                 close(pipes[j][0]);
                 close(pipes[j][1]);
+            }
+
+            if (inner_text[i] != NULL){
+                child_subshell(inner_text[i]);
             }
 
             for(int k=0; k<all_argsc[i]; k++){
