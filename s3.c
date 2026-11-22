@@ -108,27 +108,27 @@ void launch_program_with_redirection(char *args[], int argsc) {
         if (strcmp(args[i], ">") == 0){
             name = args[i+1];
             args[i] = NULL;
-            op_index = i;
+            
             op_type = 1;
             break;
         }        //output + overwrite
         else if (strcmp(args[i], ">>") == 0){
             name = args[i+1];
             args[i] = NULL;
-            op_index = i;
+            
             op_type = 2;
             break;
         }  // output, append
         else if (strcmp(args[i], "<") == 0){
             name = args[i+1];
             args[i] = NULL;
-            op_index = i;
+            
             op_type = 3;
             break;
         }
     }
 
-        if (op_index == -1 || name == NULL) {
+        if (op_type == 0 || name == NULL) {
                 fprintf(stderr, "syntax error, bad redirection\n");
                 return;
         }
@@ -230,26 +230,16 @@ void run_cd(char *args[], int argsc, char lwd[]) {
 
 int command_with_pipe(char line[]){
 
-    return(strchr(line, '|') != NULL);
+    return has_delim_at_depth0(line, '|');
 }
 
 void launch_program_with_pipes(char line[]) {
     
     char *individual[MAX_ARGS];
     char *name = NULL;
-    int op_index = -1;     
     int op_type = 0;
 
-    int count = 0;
-    char *token = strtok(line, "|");
-    while (token != NULL && count < MAX_ARGS - 1) //spilt pipe command
-    {
-        individual[count] = token;
-        count++;
-        token = strtok(NULL, "|");
-    }
-    individual[count] = NULL;
-
+    int count = split_at_depth0(line, '|', individual);
 
     char *all_args[MAX_ARGS][MAX_ARGS];   
     int all_argsc[MAX_ARGS];              
@@ -294,21 +284,21 @@ void launch_program_with_pipes(char line[]) {
                 if (strcmp(all_args[i][k], ">") == 0){
                     name = all_args[i][k+1];
                     all_args[i][k] = NULL;
-                    op_index = i;
+                    
                     op_type = 1;
                     break;
                 }        //output + overwrite
                 else if (strcmp(all_args[i][k], ">>") == 0){
                     name = all_args[i][k+1];
                     all_args[i][k] = NULL;
-                    op_index = i;
+                    
                     op_type = 2;
                     break;
                 }  // output, append
                 else if (strcmp(all_args[i][k], "<") == 0){
                     name = all_args[i][k+1];
                     all_args[i][k] = NULL;
-                    op_index = i;
+                    
                     op_type = 3;
                     break;
                 }
@@ -359,24 +349,31 @@ for (int i = 0; i < count; i++)
 }
 
 int command_with_batch(char line[]) {
-    return(strchr(line, ';') != NULL);
+    return has_delim_at_depth0(line, ';');
 }
 
-void run_batch_commands(char line[], char lwd[]){
-    
-    int count = 0;
-    char *individual[MAX_ARGS];
-    char *token = strtok(line, ";");
-
-    while (token != NULL && count < MAX_ARGS - 1) //spilt pipe command
-    {
-        individual[count] = token;
-        count++;
-        token = strtok(NULL, ";");
+int has_delim_at_depth0(char line[], char delim){
+    int depth = 0;
+    int len = strlen(line);
+    for(int i=0; i<len; i++){
+        if(line[i] == '('){
+            depth++;
+        }else if(line[i] == ')'){
+            depth --;
+        }else{
+            if(line[i] == delim && depth == 0){
+                return 1;
+            }
+        }
     }
-    individual[count] = NULL;
+    return 0;
+}
 
-    for (int i=0; i< count; i++){
+void launch_batch_commands(char line[], char lwd[]){
+    char *individual[MAX_ARGS];
+    int count = split_at_depth0(line, ';', individual);
+
+    for (int i = 0; i < count; i++) {
         run_unit(individual[i], lwd);
     }
 }
@@ -398,4 +395,57 @@ void run_unit(char unit[], char lwd[]){
         launch_program(args, argsc);
     }
     
+}
+
+int split_at_depth0(char line[], char delim, char *pieces[]){
+    int depth =0;
+    int count =0;
+    int len = strlen(line);
+
+    pieces[count++] = line;
+
+    for(int i=0; i<len; i++){
+        if(line[i] == '('){
+            depth ++;
+        }else if(line[i] == ')'){
+            depth --;
+        }else if(line[i] == delim && depth ==0){
+            line[i] = '\0';
+            pieces[count++] = &line[i+1];
+        }
+    }
+    return count;
+}
+
+int is_subshell(char unit[]){
+    int index=0;
+    int len = strlen(unit);
+
+    while(unit[index] == ' '){
+        index++; //find index of the first non space
+    }
+
+    if(unit[index] != '('){
+        return 0;
+    }
+
+    int depth =1; //already 1 as the bracket is open
+
+    for(int i=index; i<len; i++){
+        if(unit[i] == '('){
+            depth ++;
+        }else if(unit[i] == ')'){
+            depth --;
+        }
+        if(depth ==0){
+            for(int j=i; j<len; j++){
+                if(unit[j] != ' '){
+                    return 0;
+                }
+            }
+            return 1;
+        }
+    }
+
+    return 0;
 }

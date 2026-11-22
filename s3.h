@@ -52,9 +52,13 @@ void child_with_output_redirected(char *args[], int argsc, char *filename, int a
 
 //for the batch stuff (task 5)
 int command_with_batch(char line[]);
-void run_batch_commands(char line[], char lwd[]);
+void launch_batch_commands(char line[], char lwd[]);
 void run_unit(char unit[], char lwd[]);
 
+//subshells plus new functions to simplify stuff
+int has_delim_at_depth0(char line[], char delim);
+int split_at_depth0(char line[], char delim, char *pieces[]);
+void run_unit(char unit[], char lwd[]);
 
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);

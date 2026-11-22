@@ -21,9 +21,9 @@ int main(int argc, char *argv[]){
         read_command_line(line, lwd);
 
         if(command_with_batch(line)){
-            run_batch_commands(line, lwd);
+            launch_batch_commands(line, lwd);
         }
-        else if(is_cd(line)){///Implement this function
+        else{///Implement this function
             run_unit(line, lwd);
         }
     }
