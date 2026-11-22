@@ -50,6 +50,11 @@ void child(char *args[], int argsc);
 void child_with_input_redirected(char *args[], int argsc, char *filename);
 void child_with_output_redirected(char *args[], int argsc, char *filename, int append);
 
+//for the batch stuff (task 5)
+void run_batch_commands(char line[], char lwd[]);
+void run_unit(char unit[], char lwd[]);
+
+
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
 #endif

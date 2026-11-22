@@ -357,3 +357,45 @@ for (int i = 0; i < count; i++)
     wait(NULL);
 }
 }
+
+int command_with_batch(char line[]) {
+    return(strchr(line, ';') != NULL);
+}
+
+void run_batch_commands(char line[], char lwd[]){
+    
+    int count = 0;
+    char *individual[MAX_ARGS];
+    char *token = strtok(line, ";");
+
+    while (token != NULL && count < MAX_ARGS - 1) //spilt pipe command
+    {
+        individual[count] = token;
+        count++;
+        token = strtok(NULL, ";");
+    }
+    individual[count] = NULL;
+
+    for (int i=0; i< count; i++){
+        run_unit(individual[i], lwd);
+    }
+}
+
+void run_unit(char unit[], char lwd[]){
+    char *args[MAX_ARGS];
+    int argsc;
+
+    if(is_cd(unit)){
+        parse_command(unit, args, argsc);
+        run_cd(args, argsc, lwd);
+    }else if(command_with_pipe(unit)){
+        launch_program_with_pipes(unit);
+    }else if(command_with_redirection(unit)){
+        parse_command(unit, args, argsc);
+        launch_program_with_redirection(args, argsc);
+    }else{
+        parse_command(unit, args, argsc);
+        launch_program(args, argsc);
+    }
+    
+}
